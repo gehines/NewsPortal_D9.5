@@ -1,0 +1,33 @@
+<!-- Наследуемся от шаблона -->
+{% extends 'flatpages/default.html' %}
+<!-- Берем информацию от фильтра "брани" -->
+{% load  my_filters %}
+<!-- Название -->
+{% block title %}
+    Новость
+{% endblock title %}
+
+
+{% block body %}
+    <div style="text-align: center;">
+        <h1>
+            {{ post.post_title|censore }}
+        </h1>
+    </div>
+
+    <hr>
+
+    <div style="text-align: left;">
+        <h5>
+            Дата публикации: {{ post.date_of_post|date:'d M Y' }}
+        </h5>
+    </div>
+
+    <hr>
+
+    <div style="text-align: left;">
+    {{ post.post_text|censore }}
+    </div>
+
+
+{% endblock body %}

@@ -1,0 +1,99 @@
+<!-- Наследуемся от шаблона -->
+{% extends 'flatpages/default.html' %}
+
+<!-- Подключаем наш фильтр "брани" -->
+{% load  my_filters %}
+<!-- Подключаем тег фильтрации -->
+{%  load custom_tags %}
+
+{% block body %}
+
+    <div style="text-align: center;">
+        <h2>
+            Найдите статьи
+        </h2>
+    </div>
+    <!-- Добавляем форму, которая объединит набор полей, отправляемых в запросе -->
+    <form action="" method="get">
+    <!-- Переменная, переданая через контекст -->
+    {{ filterset.form.as_p }}
+    <!--     Кнопка отправки данных -->
+    <input type="submit" value="Найти" />
+    </form>
+<!-- Выводим новости только если они есть -->
+        <div style="text-align: center;">
+            <table width="100%"> <!-- Создаем таблицу, и описываем ее-->
+                <tr> <!-- Добавляем строку -->
+                    <td align="center">Заголовок</td> <!-- Добавляем ячейку -->
+                    <td align="center">Дата публикации</td> <!-- Добавляем ячейку -->
+                    <td align="center">Текст поста</td> <!-- Добавляем ячейку -->
+                    <td align="center">Тип поста</td> <!-- Добавляем ячейку -->
+                </tr> <!-- Закрываем тег добавления строки -->
+
+
+                <!-- Для каждой новости будете генерироваться новая строчка,
+                т.е. новый HTML код, который указан в теле цикла.
+                При этом сам цикл работает точно так же, как и в Python.
+                post — переменная цикла, т.е. наша новость полученная из списка -->
+                {% for post in posts_search %}
+                    <tr>
+                        <!-- Не забываем, что переменные в шаблоне ничем не отличаются
+                        от переменных в Python. Здесь также можно получать доступ к
+                        полям объекта модели. Например, здесь мы выводим название,
+                        в следующем столбце дату написания, и т.д.  -->
+                        <!-- Название нашей новости, проверяется нашим фильтром (принимающим в качестве аргумента название новости) -->
+                        <td align="left"><a href={{ post.pk }}>{{ post.post_title|censore }}</a></td>
+                        <!-- Дата публикации новости, выводим в формате день месяц год -->
+                        <td align="center">{{ post.date_of_post|date:'d M Y' }}</td>
+                        <!-- Текст новости, первые 20 символов при помощи фильтра, все остальные символы - многоточие -->
+                        <td align="left">{{ post.post_text|truncatechars:20|censore }}</td>
+                        <!-- Можно сделать фильтрацию по словам (вместо truncatechars использовать truncatewords) -->
+                        <!-- Здесь идет условие по проверке типа нашей новости -->
+                        {% if post.type_post == 'AR' %}
+                            <td>Статья</td>
+                        {% else %}
+                            <td>Новость</td>
+                        {% endif %}
+                    </tr>
+                {% endfor %}
+
+            </table>
+        </div>
+
+<!-- Добавляем пагинацию на страницу -->
+
+    <hr>
+
+    <center>
+<!-- url_raplace помогает применить фильтр на каждой странице -->
+    {% if page_obj.number != 1 %}
+        <a href="?{% url_replace page=1 %}">Начало</a>
+    {% endif %}
+
+<!-- Информация о предыдущих страницах -->
+    {% if page_obj.has_previous %} <!-- Проверяем есть ли предыдущая страница -->
+        <a href="?{% url_replace page=1 %}">1</a> <!-- Создаем ссылку (тег a) -->
+        {% if page_obj.previous_page_number != 1 %} <!-- если номер предыдущей страницы не 1 -->
+
+            <a href="?{% url_replace page=page_obj.previous_page_number %}">{{ page_obj.previous_page_number }}</a>
+        {% endif %}
+    {% endif %}
+
+<!-- Информация о текущей странице -->
+    {{ page_obj.number }}
+
+<!-- Информация о следующих страницах -->
+    {% if page_obj.has_next %} <!-- Проверяем есть ли следующая страница -->
+        <a href="?{% url_replace page=page_obj.next_page_number %}">{{ page_obj.next_page_number }}</a>
+        <!-- paginator содержит информацию о количестве страниц в переменной num_pages -->
+        {% if paginator.num_pages != page_obj.next_page_number %}
+
+            <a href="?{% url_replace page=page_obj.paginator.num_pages %}">{{ page_obj.paginator.num_pages }}</a>
+        {% endif %}
+    {% endif %}
+
+    {%  if page_obj.number != page_obj.paginator.num_pages %}
+        <a href="?{% url_replace page=page_obj.paginator.num_pages %}">Конец</a>
+    {% endif %}
+</center>
+{% endblock body %}

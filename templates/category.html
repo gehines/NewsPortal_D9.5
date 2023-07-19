@@ -1,0 +1,102 @@
+{% extends 'flatpages/default.html' %}
+{% load  my_filters %}
+{%  load custom_tags %}
+
+{% block title %}
+    Список новостей
+{% endblock title %}
+
+{% block body %}
+
+    <div style="text-align: center;">
+        <h2>
+            СПИСОК НОВОСТЕЙ
+        </h2>
+    </div>
+    <form action="" method="get">
+    <!-- Переменная, переданая через контекст -->
+    {{ filterset.form.as_p }}
+    <!--     Кнопка отправки данных -->
+    <input type="submit" value="Найти" />
+    </form>
+    <hr>
+    <div style="text-align: right;">
+        <h6>
+            Количество новостей: {{ posts|length }}
+        </h6>
+    </div>
+    <hr>
+    {% if posts %}
+        <div style="text-align: center;">
+            <table width="100%">
+                <tr>
+                    <td align="center">Заголовок</td>
+                    <td align="center">Дата публикации</td>
+                    <td align="center">Текст поста</td>
+                    <td align="center">Тип поста</td>
+                </tr>
+
+                {% for post in category_news %}
+                    <tr>
+                        <td align="left"><a href={{ post.pk }}>{{ post.post_title|censore }}</a></td>
+                        <td align="center">{{ post.date_of_post|date:'d M Y' }}</td>
+                        <td align="left">{{ post.post_text|truncatechars:20|censore }}</td>
+                        {% if post.type_post == 'AR' %}
+                            <td>Статья</td>
+                        {% else %}
+                            <td>Новость</td>
+                        {% endif %}
+                    </tr>
+                    {% for category in post.post_category.all %}
+                        <a href="{% url 'category_news' category.pk %}"> {{ category }}</a>
+                    {% endfor %}
+
+                {% endfor %}
+
+            </table>
+        </div>
+
+<!-- Если новостей нет, то ... -->
+    {% else %}
+        <h2>НОВОСТЕЙ НЕТ</h2>
+    {% endif %}
+<!-- Добавляем пагинацию на страницу -->
+
+    <hr>
+
+    <center>
+<!-- url_raplace помогает применить фильтр на каждой странице -->
+    {% if page_obj.number != 1 %}
+        <a href="?{% url_replace page=1 %}">Начало</a>
+    {% endif %}
+
+<!-- Информация о предыдущих страницах -->
+    {% if page_obj.has_previous %} <!-- Проверяем есть ли предыдущая страница -->
+        <a href="?{% url_replace page=1 %}">1</a> <!-- Создаем ссылку (тег a) -->
+        {% if page_obj.previous_page_number != 1 %} <!-- если номер предыдущей страницы не 1 -->
+
+            <a href="?{% url_replace page=page_obj.previous_page_number %}">{{ page_obj.previous_page_number }}</a>
+        {% endif %}
+    {% endif %}
+
+<!-- Информация о текущей странице -->
+    {{ page_obj.number }}
+
+<!-- Информация о следующих страницах -->
+    {% if page_obj.has_next %} <!-- Проверяем есть ли следующая страница -->
+        <a href="?{% url_replace page=page_obj.next_page_number %}">{{ page_obj.next_page_number }}</a>
+        <!-- paginator содержит информацию о количестве страниц в переменной num_pages -->
+        {% if paginator.num_pages != page_obj.next_page_number %}
+
+            <a href="?{% url_replace page=page_obj.paginator.num_pages %}">{{ page_obj.paginator.num_pages }}</a>
+        {% endif %}
+    {% endif %}
+
+    {%  if page_obj.number != page_obj.paginator.num_pages %}
+        <a href="?{% url_replace page=page_obj.paginator.num_pages %}">Конец</a>
+    {% endif %}
+</center>
+{% endblock body %}
+
+
+

@@ -1,0 +1,117 @@
+Запускаем Django shell (увидим Python-консоль):
+python manage.py shell
+
+Импортируем модели, которые понадобятся нам в работе:
+from news.models import User, Author, Category, Post, Comment
+
+Приступаем к выполнению задания:
+
+1) Создать двух пользователей с помощью метода User.objects.create_user (создаются в таблице auth_user):
+user1 = User.objects.create_user('Yurii')
+user2 = User.objects.create_user('Stasya')
+user3 = User.objects.create_user('Vlad')
+
+2) Создать два объекта модели Author, связанные с пользователями (создаются в таблице news_author
+со связью "один к одному" с таблицей auth_user):
+Author.objects.create(user=user1)
+Author.objects.create(user=user2)
+Author.objects.create(user=user3)
+
+3) Добавить 4 категории в модель Category (создаются в таблице news_category):
+Category.objects.create(name_category = 'Politics')
+Category.objects.create(name_category = 'Programming')
+Category.objects.create(name_category = 'Culture')
+Category.objects.create(name_category = 'Music')
+
+4) Добавить 2 статьи и 1 новость (таблица news_post):
+// Тип поста состоит из двух символов, в нашем кортеже их пока только два
+
+author = Author.objects.get(id=1)
+Post.objects.create(author=author, type_post='NE', post_title='Problems with project?', post_text='When I wrote this project, I met quite a lot of problems related to django settings and its integration with PyCharm')
+
+author2 = Author.objects.get(id=3)
+Post.objects.create(author=author2, type_post='AR', post_title='SpaceX capsule delivers latest four-member crew to International Space Station', post_text='A SpaceX Crew Dragon capsule arrived safely at the International Space Station "ISS" after a brief delay early on Friday, carrying two U.S. astronauts, a Russian cosmonaut and a United Arab Emirates astronaut on a six-month science mission. The autonomously flying spacecraft dubbed Endeavour docked with the space station shortly after 1:40 a.m. EST on Friday, about 25 hours after launching from NASA Kennedy Space Center in Cape Canaveral, Florida.')
+
+author3 = Author.objects.get(id=2)
+Post.objects.create(author=author3, type_post='AR', post_title='Living abroad made easy', post_text='We are very familiar with the perks of moving abroad, the thrill of discovering a completely new country and the countless exciting adventures one gets to experience. We also know living abroad can be challenging to begin with. Expat life can be exciting and tough in equal measure - this is why bab.la strives to make integrating into a new culture a fast, smooth and easy process by providing first-hand information on a large variety of topics, including finding international jobs to studying abroad.')
+
+
+5) Присвоить им категории (как минимум в одной статье/новости должно быть не меньше 2 категорий, используется таблица news_post_post_category):
+// Присваиваем одному посту две категории
+p1 = Post.objects.get(id=2)
+p1.post_category.add(Category.objects.get(id=1))
+p1.post_category.add(Category.objects.get(id=3))
+
+p2 = Post.objects.get(id=3)
+p2.post_category.add(Category.objects.get(id=3))
+p2.post_category.add(Category.objects.get(id=1))
+
+// Присваиваем посту одну категорию
+p3 = Post.objects.get(id=1)
+p3.post_category.add(Category.objects.get(id=2))
+
+6) Создать как минимум 4 комментария к разным объектам модели Post (в каждом объекте должен быть как минимум один комментарий, таблица news_comment):
+Comment.objects.create(post=Post.objects.get(id=1), user=User.objects.get(id=3), text_comment='Read documentation')
+Comment.objects.create(post=Post.objects.get(id=2), user=User.objects.get(id=3), text_comment='It is realy last fly?')
+Comment.objects.create(post=Post.objects.get(id=3), user=User.objects.get(id=2), text_comment='We have all we need in our country')
+Comment.objects.create(post=Post.objects.get(id=1), user=User.objects.get(id=4), text_comment='I have some problems, too')
+
+7) Применяя функции like() и dislike() к статьям/новостям и комментариям, скорректировать рейтинги этих объектов (изменения в таблицах news_comment и news_post):
+
+// Комментарии
+Comment.objects.get(id=12).like()
+Comment.objects.get(id=12).like()
+Comment.objects.get(id=12).dislike()
+Comment.objects.get(id=12).like()
+Comment.objects.get(id=12).like()
+Comment.objects.get(id=14).like()
+Comment.objects.get(id=14).like()
+Comment.objects.get(id=12).dislike()
+Comment.objects.get(id=13).like()
+Comment.objects.get(id=13).like()
+Comment.objects.get(id=13).like()
+Comment.objects.get(id=13).like()
+Comment.objects.get(id=13).like()
+Comment.objects.get(id=13).like()
+Comment.objects.get(id=15).like()
+Comment.objects.get(id=15).like()
+Comment.objects.get(id=15).like()
+
+// Посты
+Post.objects.get(id=3).dislike()
+Post.objects.get(id=1).like()
+Post.objects.get(id=2).like()
+Post.objects.get(id=1).like()
+
+8) Обновить рейтинги пользователей:
+
+a = Author.objects.get(id=1)
+a.update_rating()
+a = Author.objects.get(id=2)
+a.update_rating()
+a = Author.objects.get(id=3)
+a.update_rating()
+
+9) Вывести username и рейтинг лучшего пользователя (применяя сортировку и возвращая поля первого объекта):
+
+Author.objects.order_by('author_rating').last().user.username
+Author.objects.order_by('author_rating').last().author_rating
+
+10) Вывести дату добавления, username автора, рейтинг, заголовок и превью лучшей статьи,
+основываясь на лайках/дислайках к этой статье:
+
+a = Post.objects.order_by('-post_rating').first()
+a.date_of_post
+a.author.user.username
+a.post_rating
+a.post_title
+a.preview()
+
+11) Вывести все комментарии (дата, пользователь, рейтинг, текст) к этой статье:
+
+comments = Comment.objects.all().filter(post_id=a.id)
+for comment in comments:
+    print(comment.date_of_comment)
+    print(User.objects.get(id=comment.user_id))
+    print(comment.comment_rating)
+    print(comment.text_comment)
